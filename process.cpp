@@ -127,36 +127,7 @@ void clean(std::string key) {
 }
 
 
-static PyObject * process_clean(PyObject *self, PyObject *args) {
-    const char *command;
-
-    if (!PyArg_ParseTuple(args, "s", &command))
-        return NULL;
-    clean(std::string(command));
-    return Py_BuildValue("");
-}
-
-static PyObject * process_get(PyObject *self, PyObject *args) {
-    const char *command;
-
-    if (!PyArg_ParseTuple(args, "s", &command))
-        return NULL;
-    std::string res = get(std::string(command));
-    return Py_BuildValue("s", res.c_str());
-}
-
-static PyObject *process_set(PyObject *self, PyObject *args) {
-    const char* key, *val;
-
-    if (!PyArg_ParseTuple(args, "ss", &key, &val))
-        return NULL;
-
-    set(std::string(key), std::string(val));
-    return Py_BuildValue("");
-}
-
 class SharedSegment {
-
 
     public:
         SharedSegment(std::string key, int size) {
@@ -216,15 +187,50 @@ class SharedSegment {
 
 };
 
-class Foo {
-    public:
-        int val = 10;
-        int getVal() {
-            return this->val;
-        }
-};
+
+
+/*******************************************************************************************************************************************************
+ *  Python Bindings
+ ******************************************************************************************************************************************************/
+
+
+static PyObject * process_clean(PyObject *self, PyObject *args) {
+    const char *command;
+
+    if (!PyArg_ParseTuple(args, "s", &command))
+        return NULL;
+    clean(std::string(command));
+    return Py_BuildValue("");
+}
+
+static PyObject * process_get(PyObject *self, PyObject *args) {
+    const char *command;
+
+    if (!PyArg_ParseTuple(args, "s", &command))
+        return NULL;
+    std::string res = get(std::string(command));
+    return Py_BuildValue("s", res.c_str());
+}
+
+static PyObject *process_set(PyObject *self, PyObject *args) {
+    const char* key, *val;
+
+    if (!PyArg_ParseTuple(args, "ss", &key, &val))
+        return NULL;
+
+    set(std::string(key), std::string(val));
+    return Py_BuildValue("");
+}
+
 
 PyObject* construct(PyObject* self, PyObject* args) {
+
+    PyObject* sharedSegmentCapsule_;
+
+    PyArg_ParseTuple(args, "O", &sharedSegmentCapsule_);
+
+
+    SharedSegment* shm = new SharedSegment();
 
     Foo* foo = new Foo();
     PyObject* fooCapsule = PyCapsule_New((void*)foo, "FooPtr", NULL);
@@ -234,10 +240,7 @@ PyObject* construct(PyObject* self, PyObject* args) {
 }
 
 PyObject* getValue(PyObject* self, PyObject* args) {
-    PyObject* fooCapsule_;
-
-    PyArg_ParseTuple(args, "O", &fooCapsule_);
-
+   
     Foo* foo = (Foo*)PyCapsule_GetPointer(fooCapsule_, "FooPtr");
 
     int res = foo->getVal();

@@ -1,6 +1,15 @@
+#!/usr/bin/env python3
+# encoding: utf-8
+
 from distutils.core import setup, Extension
 
-# the c++ extension module
-extension_mod = Extension("process", ["process.cpp"])
+example_module = Extension(
+    'mymodule',
+    sources=['mymodule.cpp'],
+    language='C++', )
 
-setup(name = "process", ext_modules=[extension_mod])
+setup(
+    name='mymodule',
+    version='0.1.0',
+    description='example module written in C++',
+    ext_modules=[example_module], )
